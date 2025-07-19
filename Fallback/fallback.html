@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <link rel="stylesheet" href="fallback.css">
+        <title>Spotify Fallback Page</title>
+    </head>
+    <body>
+        <div class="container">
+            <header>
+                <h1 id="headerTitle">Fallback Page for Testing</h1>
+            </header>
+            <main id="main">
+                <p id="titleH2">Enter Details</p>
+                <form id="redirectForm">
+                    <label for="setScopes" id="labelBtn">Scopes: </label>
+                    <input type="text" id="setScopes" name="Scopes"/>
+                        <br></br>
+                    <label for="setClient_id" id="labelBtn">ClientID: </label>
+                    <input type="text" id="setClient_id" name="ClientID" required />
+                        <br></br>
+                    <div id="scopeListShow"></div>
+                    <div id="buttonDiv">
+                        <button href="#" class="buttonClass" id="submitBtn">Submit</button>
+                    </div>
+                </form>
+            </main>
+        </div> 
+        <script src="fallback.js"></script>
+    </body>
+</html>
