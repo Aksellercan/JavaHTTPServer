@@ -10,7 +10,8 @@ public enum Logger {
     INFO(" [ INFO ] "),
     WARN(" [ WARN ] "),
     ERROR(" [ ERROR ] "),
-    DEBUG(" [ DEBUG ] ");
+    DEBUG(" [ DEBUG ] "),
+    CRITICAL(" [ CRITICAL ] ");
 
     private final String severity;
     private boolean debugOutput = false;

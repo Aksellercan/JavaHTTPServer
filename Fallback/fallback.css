@@ -43,6 +43,7 @@ main{
     font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
     color: white;
     font-size:larger;
+    padding-bottom: 15px;
 }
 
 #labelBtn {
@@ -94,10 +95,16 @@ main{
     background:linear-gradient(#77b55a, #72b352);
 }
 
-
+#scopeListShow {
+    max-width: 25ch;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
 .jsList {
     font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
     font-size: 16px;
     color: white;
     list-style-type:decimal;
+
 }

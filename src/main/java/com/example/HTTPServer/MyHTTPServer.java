@@ -29,6 +29,9 @@ public class MyHTTPServer {
     }
 
     private String ResponseBody(File file, Charset encoding) throws IOException {
+    	if (file == null) {
+			return "";
+		}
         byte[] encoded = Files.readAllBytes(file.toPath());
         return new String(encoded, encoding);
     }
@@ -36,7 +39,8 @@ public class MyHTTPServer {
     private File GetRequestedFile(String fileNameWithExtension) {
         File requestedFilePath = new File(bodyPath + File.separator + fileNameWithExtension);
         if (!requestedFilePath.exists()) {
-            throw new NullPointerException("File " + fileNameWithExtension + " not found!");
+        	Logger.WARN.Log("File " + fileNameWithExtension + " not found!");
+        	return null;
         }
         Logger.INFO.Log("File " + fileNameWithExtension + " found.");
         return requestedFilePath;
@@ -62,12 +66,16 @@ public class MyHTTPServer {
 
                 String body = "";
                 StringBuilder requestedFile = new StringBuilder();
-                while (requestType != null) {
+                if (requestType != null) {
                     if (requestType.isEmpty()) {
                         break;
                     }
                     if (requestType.contains("GET")) {
                         for (int i = 5; i < requestType.length(); i++) {
+                            if (requestType.charAt(i) == '/') {
+                                requestedFile.setLength(0);
+                                continue;
+                            }
                             if (requestType.charAt(i) == ' ') {
                                 break;
                             }
@@ -76,9 +84,8 @@ public class MyHTTPServer {
                         if (!requestedFile.isEmpty()) {
                             body = ResponseBody(GetRequestedFile(requestedFile.toString()), StandardCharsets.UTF_8);
                         }
-                        Logger.DEBUG.Log("GET file: " + requestedFile.toString());
+                        Logger.INFO.Log("GET file: " + requestedFile);
                     }
-                    break;
                 }
 
                 String clientInputLine;
@@ -89,8 +96,6 @@ public class MyHTTPServer {
                     Logger.INFO.Log("Request Headers: " + clientInputLine);
                 }
 
-                Logger.DEBUG.Log("Sending the body");
-
                 if (requestedFile.toString().contains("css")) SendStylesheet(out, body);
                 if (requestedFile.toString().isBlank()) {
                     String htmlBody = ResponseBody(bodyFile, StandardCharsets.UTF_8);
@@ -99,7 +104,6 @@ public class MyHTTPServer {
                 if (requestedFile.toString().contains("js")) SendScript(out, body);
                 if (requestedFile.toString().contains("ico")) SendImage(out, body);
 
-                Logger.DEBUG.Log("the end of loop");
             }
 
         } catch (Exception ex) {
@@ -112,7 +116,7 @@ public class MyHTTPServer {
                 socket.close();
                 System.gc();
             } catch (Exception ex) {
-                Logger.ERROR.LogException(ex, "Cannot close socket");
+                Logger.CRITICAL.LogException(ex, "Cannot close socket");
             }
         }
     }
