@@ -11,20 +11,20 @@ public enum Logger {
     WARN(" [ WARN ] "),
     ERROR(" [ ERROR ] "),
     DEBUG(" [ DEBUG ] "),
-    CRITICAL(" [ CRITICAL ] ");
+    CRITICAL(" [ CRITICAL ] "),;
 
     private final String severity;
-    private boolean debugOutput = false;
+    private static boolean debugOutput = false;
 
     Logger(String severity) {
         this.severity = severity;
     }
 
-    public void setDebugOutput(boolean debugOutput) {
-        this.debugOutput = debugOutput;
+    public static void setDebugOutput(boolean debugOutput) {
+        Logger.debugOutput = debugOutput;
     }
 
-    public boolean getDebugOutput() {
+    public static boolean getDebugOutput() {
         return debugOutput;
     }
 
@@ -36,6 +36,8 @@ public enum Logger {
 
     public void Log(String message) {
         if (!debugOutput && this == DEBUG) {
+            return;
+        } else if (this == DEBUG) {
             debugLogs(message);
             return;
         }

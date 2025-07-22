@@ -1,11 +1,6 @@
 package com.example.HTTPServer;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.Charset;
@@ -13,15 +8,20 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.time.LocalDateTime;
 
-public class MyHTTPServer {
+
+public class HTTPServer {
     private final int port;
     private final int backlog;
-    private final File bodyPath = new File("Fallback");
-    private final File bodyFile = new File(bodyPath + File.separator + "fallback.html");
+    private File sourceFolder = new File("Fallback");
+    private ServerSocket socket = null;
 
-    public MyHTTPServer(int port, int backlog) {
+    public HTTPServer(int port, int backlog) {
         this.port = port;
         this.backlog = backlog;
+    }
+
+    public void setSourceFolder(File sourceFolder) {
+        this.sourceFolder = sourceFolder;
     }
 
     public void StartServer() {
@@ -29,32 +29,41 @@ public class MyHTTPServer {
     }
 
     private String ResponseBody(File file, Charset encoding) throws IOException {
-    	if (file == null) {
-			return "";
-		}
+        if (file == null) {
+            return "";
+        }
         byte[] encoded = Files.readAllBytes(file.toPath());
         return new String(encoded, encoding);
     }
 
     private File GetRequestedFile(String fileNameWithExtension) {
-        File requestedFilePath = new File(bodyPath + File.separator + fileNameWithExtension);
+        File requestedFilePath = new File(sourceFolder + File.separator + fileNameWithExtension);
         if (!requestedFilePath.exists()) {
-        	Logger.WARN.Log("File " + fileNameWithExtension + " not found!");
-        	return null;
+            Logger.WARN.Log("File " + fileNameWithExtension + " not found!");
+            return null;
         }
         Logger.INFO.Log("File " + fileNameWithExtension + " found.");
         return requestedFilePath;
     }
 
+    private File GetIndexPage() {
+        File indexFile = new File(sourceFolder + File.separator + "index.html");
+        if (!indexFile.exists()) {
+            Logger.WARN.Log("File " + indexFile.getName() + " not found!");
+            return null;
+        }
+        return indexFile;
+    }
+
     private void StartListening() {
-        ServerSocket socket = null;
         try {
             Logger.INFO.Log("Starting Server on port " + port);
             socket = new ServerSocket(port, backlog);
-
+            Logger.DEBUG.Log("Socket local address: " + socket.getLocalSocketAddress() + " InetAddress: " + socket.getInetAddress());
+            Logger.DEBUG.Log("Socket local port: " + socket.getLocalPort());
+            Logger.DEBUG.Log("Running on directory: " + sourceFolder);
             while (true) {
                 Socket clientSocket = socket.accept();
-
                 Logger.INFO.Log("Waiting for requests... Listening on Port: " + clientSocket.getLocalPort() + " at address: " + clientSocket.getLocalSocketAddress());
 
                 BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
@@ -81,10 +90,9 @@ public class MyHTTPServer {
                             }
                             requestedFile.append(requestType.charAt(i));
                         }
-                        if (!requestedFile.isEmpty()) {
+                        if (!(requestedFile.isEmpty())) {
                             body = ResponseBody(GetRequestedFile(requestedFile.toString()), StandardCharsets.UTF_8);
                         }
-                        Logger.INFO.Log("GET file: " + requestedFile);
                     }
                 }
 
@@ -97,15 +105,20 @@ public class MyHTTPServer {
                 }
 
                 if (requestedFile.toString().contains("css")) SendStylesheet(out, body);
-                if (requestedFile.toString().isBlank()) {
-                    String htmlBody = ResponseBody(bodyFile, StandardCharsets.UTF_8);
+                if (requestedFile.toString().trim().isEmpty()) {
+                    File htmlFile = GetIndexPage();
+                    String htmlBody;
+                    if (htmlFile != null) {
+                        htmlBody = ResponseBody(htmlFile, StandardCharsets.UTF_8);
+                    } else {
+                        htmlBody = "404 Not Found";
+                    }
                     SendHTML(out, htmlBody);
                 }
+                if (requestedFile.toString().contains("html")) SendHTML(out, body);
                 if (requestedFile.toString().contains("js")) SendScript(out, body);
                 if (requestedFile.toString().contains("ico")) SendImage(out, body);
-
             }
-
         } catch (Exception ex) {
             Logger.ERROR.LogException(ex, "Port " + port + " backlog limit: " + 10);
         } finally {
@@ -115,6 +128,7 @@ public class MyHTTPServer {
                 }
                 socket.close();
                 System.gc();
+                Logger.INFO.Log("Socket Closed and cleared resources.");
             } catch (Exception ex) {
                 Logger.CRITICAL.LogException(ex, "Cannot close socket");
             }
@@ -170,7 +184,7 @@ public class MyHTTPServer {
         out.write("HTTP/1.0 200 OK\r\n");
         out.write("Date: " + now + "\r\n");
         out.write("Server: Custom Server\r\n");
-        out.write("Content-Type: image/vnd.microsoft.icon\r\n");
+        out.write("Content-Type: image/x-icon\r\n");
         out.write("Content-Length: " + bodyLength + "\r\n");
         out.write("\r\n");
         out.write(body);
