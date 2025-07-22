@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 public class HTTPServer {
     private final int port;
     private final int backlog;
-    private File sourceFolder = new File("Fallback");
+    private File sourceFolder = new File(System.getProperty("user.home"));
     private ServerSocket socket = null;
 
     public HTTPServer(int port, int backlog) {
