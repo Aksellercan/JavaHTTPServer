@@ -13,7 +13,7 @@ HTTPServer start --path <path> --port <port> --backlog <backlog> --verbose
 - Required JDK version is 24.
 
 ## Defaults
-port = 8080
-backlog = 10
-path = User Home Directory (for now)
-Verbosity = false
+- port = 8080
+- backlog = 10
+- path = User Home Directory (for now)
+- Verbosity = false
