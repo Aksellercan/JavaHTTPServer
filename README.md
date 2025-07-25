@@ -13,7 +13,13 @@ HTTPServer start --path <path> --port <port> --backlog <backlog> --verbose
 - Required JDK version is 24.
 
 ## Defaults
-- port = 8080
+- port = 0 (OS assigns an available port)
 - backlog = 10
-- path = User Home Directory (for now)
+- name = JavaHTTPServer
+- path = path jar is running from
 - Verbosity = false
+
+## Issues
+- Can't navigate file structures to return files
+- Does not support HTTPS and CORS
+- HTTP/1 currently

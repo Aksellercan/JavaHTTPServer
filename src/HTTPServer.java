@@ -1,5 +1,3 @@
-package com.example.HTTPServer;
-
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -12,7 +10,8 @@ import java.time.LocalDateTime;
 public class HTTPServer {
     private final int port;
     private final int backlog;
-    private File sourceFolder = new File(System.getProperty("user.home"));
+    private File sourceFolder = new File(getClass().getProtectionDomain().getCodeSource().getLocation().getPath()).getParentFile();
+    private String serverName = "JavaHTTPServer";
     private ServerSocket socket = null;
 
     public HTTPServer(int port, int backlog) {
@@ -20,6 +19,9 @@ public class HTTPServer {
         this.backlog = backlog;
     }
 
+    public void setServerName(String serverName) {
+        this.serverName = serverName;
+    }
     public void setSourceFolder(File sourceFolder) {
         this.sourceFolder = sourceFolder;
     }
@@ -47,6 +49,7 @@ public class HTTPServer {
     }
 
     private File GetIndexPage() {
+        Logger.INFO.Log("GetIndexPage started. " + sourceFolder.getAbsolutePath());
         File indexFile = new File(sourceFolder + File.separator + "index.html");
         if (!indexFile.exists()) {
             Logger.WARN.Log("File " + indexFile.getName() + " not found!");
@@ -57,8 +60,9 @@ public class HTTPServer {
 
     private void StartListening() {
         try {
-            Logger.INFO.Log("Starting Server on port " + port);
+            Logger.INFO.Log("Starting Server on " + (port == 0 ? "available port": "port: " + port));
             socket = new ServerSocket(port, backlog);
+            Logger.INFO.Log("Server name: " + serverName);
             Logger.DEBUG.Log("Socket local address: " + socket.getLocalSocketAddress() + " InetAddress: " + socket.getInetAddress());
             Logger.DEBUG.Log("Socket local port: " + socket.getLocalPort());
             Logger.DEBUG.Log("Running on directory: " + sourceFolder);
@@ -104,20 +108,30 @@ public class HTTPServer {
                     Logger.INFO.Log("Request Headers: " + clientInputLine);
                 }
 
-                if (requestedFile.toString().contains("css")) SendStylesheet(out, body);
+                if (requestedFile.toString().contains("css"))
+                    PostResponse(out, body, ContentType.StyleSheet.getContentType(), StatusCode.Accepted.getStatusCode());
                 if (requestedFile.toString().trim().isEmpty()) {
                     File htmlFile = GetIndexPage();
                     String htmlBody;
+                    String statusCode;
+                    String contentType;
                     if (htmlFile != null) {
+                        contentType = ContentType.HTML.getContentType();
+                        statusCode = StatusCode.OK.getStatusCode();
                         htmlBody = ResponseBody(htmlFile, StandardCharsets.UTF_8);
                     } else {
+                        contentType = ContentType.TextPlain.getContentType();
+                        statusCode = StatusCode.NotFound.getStatusCode();
                         htmlBody = "404 Not Found";
                     }
-                    SendHTML(out, htmlBody);
+                    PostResponse(out, htmlBody, contentType, statusCode);
                 }
-                if (requestedFile.toString().contains("html")) SendHTML(out, body);
-                if (requestedFile.toString().contains("js")) SendScript(out, body);
-                if (requestedFile.toString().contains("ico")) SendImage(out, body);
+                if (requestedFile.toString().contains("html"))
+                    PostResponse(out, body, ContentType.HTML.getContentType(), StatusCode.Accepted.getStatusCode());
+                if (requestedFile.toString().contains("js"))
+                    PostResponse(out, body, ContentType.JavaScript.getContentType(), StatusCode.Accepted.getStatusCode());
+                if (requestedFile.toString().contains("ico"))
+                    PostResponse(out, body, ContentType.ImageXIcon.getContentType(), StatusCode.Accepted.getStatusCode());
             }
         } catch (Exception ex) {
             Logger.ERROR.LogException(ex, "Port " + port + " backlog limit: " + 10);
@@ -135,56 +149,14 @@ public class HTTPServer {
         }
     }
 
-    private void SendScript(BufferedWriter out, String body) throws IOException {
+    private void PostResponse(BufferedWriter out, String body, String contentType, String statusCode) throws IOException {
         int bodyLength = body.length();
         Logger.DEBUG.Log("Body Length: " + bodyLength);
         LocalDateTime now = LocalDateTime.now();
-        out.write("HTTP/1.0 200 OK\r\n");
+        out.write("HTTP/1.0 "+ statusCode +"\r\n");
         out.write("Date: " + now + "\r\n");
-        out.write("Server: Custom Server\r\n");
-        out.write("Content-Type: text/javascript\r\n");
-        out.write("Content-Length: " + bodyLength + "\r\n");
-        out.write("\r\n");
-        out.write(body);
-        out.close();
-    }
-
-    private void SendStylesheet(BufferedWriter out, String body) throws IOException {
-        int bodyLength = body.length();
-        Logger.DEBUG.Log("Body Length: " + bodyLength);
-        LocalDateTime now = LocalDateTime.now();
-        out.write("HTTP/1.0 200 OK\r\n");
-        out.write("Date: " + now + "\r\n");
-        out.write("Server: Custom Server\r\n");
-        out.write("Content-Type: text/css\r\n");
-        out.write("Content-Length: " + bodyLength + "\r\n");
-        out.write("\r\n");
-        out.write(body);
-        out.close();
-    }
-
-    private void SendHTML(BufferedWriter out, String body) throws IOException {
-        int bodyLength = body.length();
-        Logger.DEBUG.Log("Body Length: " + bodyLength);
-        LocalDateTime now = LocalDateTime.now();
-        out.write("HTTP/1.0 200 OK\r\n");
-        out.write("Date: " + now + "\r\n");
-        out.write("Server: Custom Server\r\n");
-        out.write("Content-Type: text/html\r\n");
-        out.write("Content-Length: " + bodyLength + "\r\n");
-        out.write("\r\n");
-        out.write(body);
-        out.close();
-    }
-
-    private void SendImage(BufferedWriter out, String body) throws IOException {
-        int bodyLength = body.length();
-        Logger.DEBUG.Log("Body Length: " + bodyLength);
-        LocalDateTime now = LocalDateTime.now();
-        out.write("HTTP/1.0 200 OK\r\n");
-        out.write("Date: " + now + "\r\n");
-        out.write("Server: Custom Server\r\n");
-        out.write("Content-Type: image/x-icon\r\n");
+        out.write("Server: " + serverName + "\r\n");
+        out.write("Content-Type: " + contentType + "\r\n");
         out.write("Content-Length: " + bodyLength + "\r\n");
         out.write("\r\n");
         out.write(body);

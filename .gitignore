@@ -38,6 +38,8 @@ build/
 .DS_Store
 
 ### My ignore list ###
+out/
+out/*
 .idea/
 .idea/*
 Logs/

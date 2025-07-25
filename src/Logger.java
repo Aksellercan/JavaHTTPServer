@@ -1,5 +1,3 @@
-package com.example.HTTPServer;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -22,10 +20,6 @@ public enum Logger {
 
     public static void setDebugOutput(boolean debugOutput) {
         Logger.debugOutput = debugOutput;
-    }
-
-    public static boolean getDebugOutput() {
-        return debugOutput;
     }
 
     private String DateSeverityFormat() {
