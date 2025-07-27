@@ -63,8 +63,8 @@ public class HTTPServer {
             Logger.INFO.Log("Starting Server on " + (port == 0 ? "available port": "port: " + port));
             socket = new ServerSocket(port, backlog);
             Logger.INFO.Log("Server name: " + serverName);
-            Logger.DEBUG.Log("Socket local address: " + socket.getLocalSocketAddress() + " InetAddress: " + socket.getInetAddress());
-            Logger.DEBUG.Log("Socket local port: " + socket.getLocalPort());
+            Logger.INFO.Log("Socket local address: " + socket.getLocalSocketAddress() + " InetAddress: " + socket.getInetAddress());
+            Logger.INFO.Log("Socket local port: " + socket.getLocalPort());
             Logger.DEBUG.Log("Running on directory: " + sourceFolder);
             while (true) {
                 Socket clientSocket = socket.accept();
