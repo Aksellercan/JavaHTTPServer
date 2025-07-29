@@ -8,8 +8,9 @@ public class Main {
         }
         if (args.length <= 10) {
             if (args[0].equals("start")) {
+                System.out.println(":: Ctrl+C to stop the server");
                 int port = 0;
-                int backlog = 0;
+                int backlog = 10;
                 String name = null;
                 File sourceFolder = null;
                 try {
@@ -33,9 +34,6 @@ public class Main {
                 } catch (Exception e) {
                     System.err.println("Invalid Usage\nUsage: HTTPServer start --path <path> --port <port> --backlog <backlog> --verbose");
                     return;
-                }
-                if (backlog == 0) {
-                    backlog = 10;
                 }
                 HTTPServer server = new HTTPServer(port, backlog);
                 if (sourceFolder != null) {

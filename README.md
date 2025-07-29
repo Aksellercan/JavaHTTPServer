@@ -20,6 +20,5 @@ HTTPServer start --path <path> --port <port> --backlog <backlog> --verbose
 - Verbosity = false
 
 ## Issues
-- Can't navigate file structures to return files
 - Does not support HTTPS and CORS
 - HTTP/1 currently

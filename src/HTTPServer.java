@@ -22,6 +22,7 @@ public class HTTPServer {
     public void setServerName(String serverName) {
         this.serverName = serverName;
     }
+
     public void setSourceFolder(File sourceFolder) {
         this.sourceFolder = sourceFolder;
     }
@@ -30,26 +31,36 @@ public class HTTPServer {
         StartListening();
     }
 
+    private File GetFolders(String requestedFile) {
+        StringBuilder folders = new StringBuilder();
+        StringBuilder folderNames = new StringBuilder();
+        for (int i = 5; i < requestedFile.length(); i++) {
+            if (requestedFile.charAt(i) == ' ') {
+                break;
+            }
+            if (requestedFile.charAt(i) == '/') {
+                folders.append(folderNames).append(File.separator);
+                folderNames.setLength(0);
+                continue;
+            }
+            folderNames.append(requestedFile.charAt(i));
+        }
+        if (folderNames.toString().isEmpty()) {
+            return GetIndexPage();
+        }
+        return new File(sourceFolder.getAbsolutePath() + File.separator + folders + folderNames);
+    }
+
     private String ResponseBody(File file, Charset encoding) throws IOException {
-        if (file == null) {
+        if (!file.exists()) {
             return "";
         }
         byte[] encoded = Files.readAllBytes(file.toPath());
         return new String(encoded, encoding);
     }
 
-    private File GetRequestedFile(String fileNameWithExtension) {
-        File requestedFilePath = new File(sourceFolder + File.separator + fileNameWithExtension);
-        if (!requestedFilePath.exists()) {
-            Logger.WARN.Log("File " + fileNameWithExtension + " not found!");
-            return null;
-        }
-        Logger.INFO.Log("File " + fileNameWithExtension + " found.");
-        return requestedFilePath;
-    }
-
     private File GetIndexPage() {
-        Logger.INFO.Log("GetIndexPage started. " + sourceFolder.getAbsolutePath());
+        Logger.INFO.Log("Index page requested. " + sourceFolder.getAbsolutePath());
         File indexFile = new File(sourceFolder + File.separator + "index.html");
         if (!indexFile.exists()) {
             Logger.WARN.Log("File " + indexFile.getName() + " not found!");
@@ -58,14 +69,31 @@ public class HTTPServer {
         return indexFile;
     }
 
+    private String GetFilename(String requestType) {
+        StringBuilder requestedFile = new StringBuilder();
+        if (requestType.contains("GET")) {
+            for (int i = 5; i < requestType.length(); i++) {
+                if (requestType.charAt(i) == '/') {
+                    requestedFile.setLength(0);
+                    continue;
+                }
+                if (requestType.charAt(i) == ' ') {
+                    break;
+                }
+                requestedFile.append(requestType.charAt(i));
+            }
+        }
+        return requestedFile.toString();
+    }
+
     private void StartListening() {
         try {
-            Logger.INFO.Log("Starting Server on " + (port == 0 ? "available port": "port: " + port));
+            Logger.INFO.Log("Starting Server on " + (port == 0 ? "available port" : "port: " + port));
             socket = new ServerSocket(port, backlog);
             Logger.INFO.Log("Server name: " + serverName);
             Logger.INFO.Log("Socket local address: " + socket.getLocalSocketAddress() + " InetAddress: " + socket.getInetAddress());
             Logger.INFO.Log("Socket local port: " + socket.getLocalPort());
-            Logger.DEBUG.Log("Running on directory: " + sourceFolder);
+            Logger.INFO.Log("Running on directory: " + sourceFolder);
             while (true) {
                 Socket clientSocket = socket.accept();
                 Logger.INFO.Log("Waiting for requests... Listening on Port: " + clientSocket.getLocalPort() + " at address: " + clientSocket.getLocalSocketAddress());
@@ -78,25 +106,15 @@ public class HTTPServer {
                 Logger.INFO.Log("Request: " + requestType);
 
                 String body = "";
-                StringBuilder requestedFile = new StringBuilder();
+                String requestedFile = null;
                 if (requestType != null) {
                     if (requestType.isEmpty()) {
                         break;
                     }
-                    if (requestType.contains("GET")) {
-                        for (int i = 5; i < requestType.length(); i++) {
-                            if (requestType.charAt(i) == '/') {
-                                requestedFile.setLength(0);
-                                continue;
-                            }
-                            if (requestType.charAt(i) == ' ') {
-                                break;
-                            }
-                            requestedFile.append(requestType.charAt(i));
-                        }
-                        if (!(requestedFile.isEmpty())) {
-                            body = ResponseBody(GetRequestedFile(requestedFile.toString()), StandardCharsets.UTF_8);
-                        }
+                    requestedFile = GetFilename(requestType);
+                    if (!(requestedFile.isEmpty())) {
+                        Logger.DEBUG.Log("Requested file: " + requestedFile);
+                        body = ResponseBody(GetFolders(requestType), StandardCharsets.UTF_8);
                     }
                 }
 
@@ -108,30 +126,33 @@ public class HTTPServer {
                     Logger.INFO.Log("Request Headers: " + clientInputLine);
                 }
 
-                if (requestedFile.toString().contains("css"))
-                    PostResponse(out, body, ContentType.StyleSheet.getContentType(), StatusCode.Accepted.getStatusCode());
-                if (requestedFile.toString().trim().isEmpty()) {
-                    File htmlFile = GetIndexPage();
-                    String htmlBody;
-                    String statusCode;
-                    String contentType;
-                    if (htmlFile != null) {
-                        contentType = ContentType.HTML.getContentType();
-                        statusCode = StatusCode.OK.getStatusCode();
-                        htmlBody = ResponseBody(htmlFile, StandardCharsets.UTF_8);
-                    } else {
-                        contentType = ContentType.TextPlain.getContentType();
-                        statusCode = StatusCode.NotFound.getStatusCode();
-                        htmlBody = "404 Not Found";
+                if (requestType != null) {
+                    if (requestedFile.contains("css"))
+                        PostResponse(out, body, ContentType.StyleSheet.getContentType(), StatusCode.Accepted.getStatusCode());
+                    if (requestedFile.trim().isEmpty()) {
+                        File htmlFile = GetIndexPage();
+                        String htmlBody;
+                        String statusCode;
+                        String contentType;
+                        if (htmlFile != null) {
+                            contentType = ContentType.HTML.getContentType();
+                            statusCode = StatusCode.OK.getStatusCode();
+                            htmlBody = ResponseBody(htmlFile, StandardCharsets.UTF_8);
+                        } else {
+                            contentType = ContentType.TextPlain.getContentType();
+                            statusCode = StatusCode.NotFound.getStatusCode();
+                            htmlBody = "404 Not Found";
+                        }
+                        PostResponse(out, htmlBody, contentType, statusCode);
                     }
-                    PostResponse(out, htmlBody, contentType, statusCode);
+                    if (requestedFile.contains("html"))
+                        PostResponse(out, body, ContentType.HTML.getContentType(), StatusCode.Accepted.getStatusCode());
+                    if (requestedFile.contains("js"))
+                        PostResponse(out, body, ContentType.JavaScript.getContentType(), StatusCode.Accepted.getStatusCode());
+                    if (requestedFile.contains("ico"))
+                        PostResponse(out, body, ContentType.ImageXIcon.getContentType(), StatusCode.Accepted.getStatusCode());
                 }
-                if (requestedFile.toString().contains("html"))
-                    PostResponse(out, body, ContentType.HTML.getContentType(), StatusCode.Accepted.getStatusCode());
-                if (requestedFile.toString().contains("js"))
-                    PostResponse(out, body, ContentType.JavaScript.getContentType(), StatusCode.Accepted.getStatusCode());
-                if (requestedFile.toString().contains("ico"))
-                    PostResponse(out, body, ContentType.ImageXIcon.getContentType(), StatusCode.Accepted.getStatusCode());
+                System.out.println(":: Ctrl+C to stop the server");
             }
         } catch (Exception ex) {
             Logger.ERROR.LogException(ex, "Port " + port + " backlog limit: " + 10);
@@ -153,7 +174,7 @@ public class HTTPServer {
         int bodyLength = body.length();
         Logger.DEBUG.Log("Body Length: " + bodyLength);
         LocalDateTime now = LocalDateTime.now();
-        out.write("HTTP/1.0 "+ statusCode +"\r\n");
+        out.write("HTTP/1.0 " + statusCode + "\r\n");
         out.write("Date: " + now + "\r\n");
         out.write("Server: " + serverName + "\r\n");
         out.write("Content-Type: " + contentType + "\r\n");
