@@ -10,8 +10,6 @@ Simple HTTP Server written in Java. Currently, It can serve HTML, CSS and Script
 HTTPServer start --path <path> --port <port> --backlog <backlog> --verbose
 ```
 
-- Required JDK version is 24.
-
 ## Defaults
 - port = 0 (OS assigns an available port)
 - backlog = 10

@@ -60,7 +60,7 @@ public class HTTPServer {
     }
 
     private File GetIndexPage() {
-        Logger.INFO.Log("Index page requested. " + sourceFolder.getAbsolutePath());
+        Logger.DEBUG.Log("Index page requested. " + sourceFolder.getAbsolutePath());
         File indexFile = new File(sourceFolder + File.separator + "index.html");
         if (!indexFile.exists()) {
             Logger.WARN.Log("File " + indexFile.getName() + " not found!");
@@ -123,7 +123,7 @@ public class HTTPServer {
                     if (clientInputLine.isEmpty()) {
                         break;
                     }
-                    Logger.INFO.Log("Request Headers: " + clientInputLine);
+                    Logger.DEBUG.Log("Request Headers: " + clientInputLine);
                 }
 
                 if (requestType != null) {
