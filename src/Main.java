@@ -16,7 +16,7 @@ public class Main {
                 String name = null;
                 File sourceFolder = null;
                 try {
-                    for (int i = 1; i < args.length; i += 2) {
+                    for (int i = 1; i < args.length; i++) {
                         switch (args[i]) {
                             case "--name":
                                 name = args[i + 1];
@@ -33,9 +33,6 @@ public class Main {
                             case "--verbose":
                                 Logger.setDebugOutput(true);
                                 break;
-                            default:
-                                System.out.println(ConsoleColours.RED + "Invalid Usage\nUsage: HTTPServer start --name <server-name> --dir <directory> --port <port> --backlog <backlog> --verbose" + ConsoleColours.RESET);
-                                System.exit(1);
                         }
                     }
                 } catch (Exception e) {
