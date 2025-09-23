@@ -1,10 +1,13 @@
 import java.io.File;
+import Logger.Logger;
+import Logger.ConsoleColours;
 
 public class Main {
     public static void main(String[] args) {
+        Logger.setEnableStackTraces(true);
         if (args.length < 1) {
-            System.err.println("Invalid Usage\nUsage: HTTPServer start --path <path> --port <port> --backlog <backlog> --verbose");
-            System.exit(1);
+            System.out.println("Usage: HTTPServer start --name <server-name> --dir <directory> --port <port> --backlog <backlog> --verbose");
+            System.exit(0);
         }
         if (args.length <= 10) {
             if (args[0].equals("start")) {
@@ -12,21 +15,30 @@ public class Main {
                 int backlog = 10;
                 String name = null;
                 File sourceFolder = null;
-                for (int i = 0; i < args.length; i++) {
-                    if (args[i].equals("--name")) {
-                        name = args[i+1];
-                    }
-                    if (args[i].equals("--path")) {
-                        sourceFolder = new File(args[i + 1]);
-                    }
-                    if (args[i].equals("--port")) {
-                        port = Integer.parseInt(args[i + 1]);
-                    }
-                    if (args[i].equals("--backlog")) {
-                        backlog = Integer.parseInt(args[i + 1]);
-                    }
-                    if (args[i].equals("--verbose")) {
-                        Logger.setDebugOutput(true);
+                if (args.length % 2 == 0) {
+                    System.out.println(ConsoleColours.RED + "Invalid Usage\nUsage: HTTPServer start --name <server-name> --dir <directory> --port <port> --backlog <backlog> --verbose" + ConsoleColours.RESET);
+                    System.exit(1);
+                }
+                for (int i = 1; i < args.length; i += 2) {
+                    switch (args[i]) {
+                        case "--name":
+                            name = args[i+1];
+                            break;
+                        case "--dir":
+                            sourceFolder = new File(args[i + 1]);
+                            break;
+                        case "--port":
+                            port = Integer.parseInt(args[i + 1]);
+                            break;
+                        case "--backlog":
+                            backlog = Integer.parseInt(args[i + 1]);
+                            break;
+                        case "--verbose":
+                            Logger.setDebugOutput(true);
+                            break;
+                        default:
+                            System.out.println(ConsoleColours.RED + "Invalid Usage\nUsage: HTTPServer start --name <server-name> --dir <directory> --port <port> --backlog <backlog> --verbose" + ConsoleColours.RESET);
+                            System.exit(1);
                     }
                 }
                 HTTPServer server = new HTTPServer(port, backlog);
@@ -41,6 +53,9 @@ public class Main {
                     server.setServerName(name);
                 }
                 server.StartServer();
+            } else {
+                System.out.println("Usage: HTTPServer start --name <server-name> --dir <directory> --port <port> --backlog <backlog> --verbose");
+                System.exit(0);
             }
         }
     }

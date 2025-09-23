@@ -5,6 +5,8 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.time.LocalDateTime;
+import Logger.Logger;
+import Logger.ConsoleColours;
 
 
 public class HTTPServer {
@@ -152,7 +154,7 @@ public class HTTPServer {
                     if (requestedFile.contains("ico"))
                         PostResponse(out, body, ContentType.ImageXIcon.getContentType(), StatusCode.Accepted.getStatusCode());
                 }
-                System.out.println(":: Ctrl+C to stop the server");
+                System.out.println(ConsoleColours.BLUE + ":: Ctrl+C to stop the server" + ConsoleColours.RESET);
             }
         } catch (Exception ex) {
             Logger.ERROR.LogException(ex, "Port " + port + " backlog limit: " + 10);
@@ -162,7 +164,6 @@ public class HTTPServer {
                     throw new NullPointerException("Socket Object is NULL");
                 }
                 socket.close();
-                System.gc();
                 Logger.INFO.Log("Socket Closed and cleared resources.");
             } catch (Exception ex) {
                 Logger.CRITICAL.LogException(ex, "Cannot close socket");
@@ -172,9 +173,13 @@ public class HTTPServer {
 
     private void PostResponse(BufferedWriter out, String body, String contentType, String statusCode) throws IOException {
         int bodyLength = body.length();
-        Logger.DEBUG.Log("Body Length: " + bodyLength);
         LocalDateTime now = LocalDateTime.now();
-        out.write("HTTP/1.0 " + statusCode + "\r\n");
+        Logger.DEBUG.Log("HTTP/1.0 " + statusCode);
+        Logger.DEBUG.Log("Date: " + now);
+        Logger.DEBUG.Log("Server: " + serverName);
+        Logger.DEBUG.Log("Content-type: " + contentType);
+        Logger.DEBUG.Log("Content-Length: " + bodyLength);
+        out.write("HTTP/1.0 "+ statusCode +"\r\n");
         out.write("Date: " + now + "\r\n");
         out.write("Server: " + serverName + "\r\n");
         out.write("Content-Type: " + contentType + "\r\n");

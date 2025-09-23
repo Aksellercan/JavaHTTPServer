@@ -2,12 +2,20 @@
 
 ----------
 
-Simple HTTP Server written in Java. Currently, It can serve HTML, CSS and Scripts to Google Chrome and Firefox. 
+Simple HTTP Server written in Java. Currently, It can serve HTML, CSS and Scripts to Google Chrome, Firefox and other web browsers. 
 
 ## Usage
 
+JRE/JDK is required to run. Command to run it in terminal:
 ```bash
-HTTPServer start --path <path> --port <port> --backlog <backlog> --verbose
+java -jar HTTPServer.jar
+```
+### Help
+To get help run:
+```bash
+# you can run h or help
+HTTPServer help
+HTTPServer start --name <server-name> --dir <directory> --port <port> --backlog <backlog> --verbose
 ```
 
 ## Defaults
@@ -18,5 +26,4 @@ HTTPServer start --path <path> --port <port> --backlog <backlog> --verbose
 - Verbosity = false
 
 ## Issues
-- Does not support HTTPS and CORS
-- HTTP/1 currently
+1. Does not support HTTPS
