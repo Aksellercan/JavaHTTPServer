@@ -15,31 +15,32 @@ public class Main {
                 int backlog = 10;
                 String name = null;
                 File sourceFolder = null;
-                if (args.length % 2 == 0) {
+                try {
+                    for (int i = 1; i < args.length; i += 2) {
+                        switch (args[i]) {
+                            case "--name":
+                                name = args[i + 1];
+                                break;
+                            case "--dir":
+                                sourceFolder = new File(args[i + 1]);
+                                break;
+                            case "--port":
+                                port = Integer.parseInt(args[i + 1]);
+                                break;
+                            case "--backlog":
+                                backlog = Integer.parseInt(args[i + 1]);
+                                break;
+                            case "--verbose":
+                                Logger.setDebugOutput(true);
+                                break;
+                            default:
+                                System.out.println(ConsoleColours.RED + "Invalid Usage\nUsage: HTTPServer start --name <server-name> --dir <directory> --port <port> --backlog <backlog> --verbose" + ConsoleColours.RESET);
+                                System.exit(1);
+                        }
+                    }
+                } catch (Exception e) {
                     System.out.println(ConsoleColours.RED + "Invalid Usage\nUsage: HTTPServer start --name <server-name> --dir <directory> --port <port> --backlog <backlog> --verbose" + ConsoleColours.RESET);
                     System.exit(1);
-                }
-                for (int i = 1; i < args.length; i += 2) {
-                    switch (args[i]) {
-                        case "--name":
-                            name = args[i+1];
-                            break;
-                        case "--dir":
-                            sourceFolder = new File(args[i + 1]);
-                            break;
-                        case "--port":
-                            port = Integer.parseInt(args[i + 1]);
-                            break;
-                        case "--backlog":
-                            backlog = Integer.parseInt(args[i + 1]);
-                            break;
-                        case "--verbose":
-                            Logger.setDebugOutput(true);
-                            break;
-                        default:
-                            System.out.println(ConsoleColours.RED + "Invalid Usage\nUsage: HTTPServer start --name <server-name> --dir <directory> --port <port> --backlog <backlog> --verbose" + ConsoleColours.RESET);
-                            System.exit(1);
-                    }
                 }
                 HTTPServer server = new HTTPServer(port, backlog);
                 if (sourceFolder != null) {
